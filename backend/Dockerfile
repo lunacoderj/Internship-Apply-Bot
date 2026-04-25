@@ -20,10 +20,10 @@ RUN apk add --no-cache \
     ca-certificates \
     ttf-freefont
 
-# Install applypilot
+# Install applypilot and its dependencies
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir applypilot
+RUN pip install --no-cache-dir "applypilot==0.3.0"
 
 ENV NODE_ENV=production
 ENV LOG_LEVEL=warn
