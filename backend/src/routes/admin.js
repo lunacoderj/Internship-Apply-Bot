@@ -2,7 +2,7 @@
 // Bull Board UI + admin queue stats
 import { Router } from 'express';
 import { createBullBoard } from '@bull-board/api';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 import { applicationQueue } from '../queues/applicationQueue.js';
 import { createLogger } from '../lib/logger.js';
