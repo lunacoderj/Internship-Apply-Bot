@@ -1,9 +1,8 @@
-// src/server.js
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { config } from 'dotenv';
 import { createLogger } from './lib/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requireAuth } from './middleware/auth.js';
@@ -12,7 +11,7 @@ import webhookRouter from './routes/webhook.js';
 import apiRouter from './routes/api.js';
 import adminRouter from './routes/admin.js';
 
-config();
+
 const app = express();
 const logger = createLogger('server');
 const isProd = process.env.NODE_ENV === 'production';
