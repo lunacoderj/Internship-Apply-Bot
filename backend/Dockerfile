@@ -1,24 +1,39 @@
 # Use production-ready multi-stage build as default Dockerfile
 # Stage 1: Build & Dependencies
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 # Stage 2: Runtime
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 WORKDIR /app
 
-# Install Python and Chromium (required for ApplyPilot/Puppeteer)
-RUN apk add --no-cache \
+# Install Python and Chromium dependencies
+RUN apt-get update && apt-get install -y \
     python3 \
-    py3-pip \
+    python3-pip \
+    python3-venv \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
+    fonts-liberation \
+    libnss3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     ca-certificates \
-    ttf-freefont
+    wget \
+    curl \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install applypilot and its dependencies
 RUN python3 -m venv /opt/venv
@@ -27,11 +42,13 @@ RUN pip install --no-cache-dir "applypilot==0.3.0"
 
 ENV NODE_ENV=production
 ENV LOG_LEVEL=warn
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV PLAYWRIGHT_BROWSERS_PATH=0
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 
 # Add non-root user for security
-RUN addgroup --system --gid 1001 appgroup && \
-    adduser --system --uid 1001 appuser
+RUN groupadd -r -g 1001 appgroup && \
+    useradd -r -u 1001 -g appgroup -m appuser
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY package.json ./
@@ -39,7 +56,7 @@ COPY src ./src
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:3000/health || exit 1
 
 USER appuser
 
